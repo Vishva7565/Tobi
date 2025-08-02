@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Simple Food Tracker</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: start;
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      max-width: 500px;
+      width: 90%;
+      margin-top: 20px;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #ff4d4d;
+    }
+    .food-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    label {
+      flex: 1 1 45%;
+      background: #eee;
+      padding: 10px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #ff4d4d;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .status {
+      margin-top: 20px;
+    }
+    .step {
+      margin: 10px 0;
+      padding: 10px;
+      border-left: 5px solid #ccc;
+      background: #f9f9f9;
+    }
+    .step.active {
+      border-color: #4caf50;
+      background: #eaffea;
+    }
+    #map {
+      height: 250px;
+      width: 100%;
+      margin-top: 15px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🍔 Food Tracker</h1>
+    <div class="food-list">
+      <label><input type="checkbox" value="Burger" /> Burger</label>
+      <label><input type="checkbox" value="Pizza" /> Pizza</label>
+      <label><input type="checkbox" value="Fries" /> Fries</label>
+      <label><input type="checkbox" value="Salad" /> Salad</label>
+    </div>
+    <button onclick="startTracking()">Start Order</button>
+    <div class="status" id="statusSection" style="display:none;">
+      <div id="orderedItems" style="font-weight:bold;"></div>
+      <div class="step active">Order Placed</div>
+      <div class="step" id="step2">Preparing</div>
+      <div class="step" id="step3">Out for Delivery</div>
+      <div class="step" id="step4">Delivered</div>
+      <div id="locationInfo" style="margin-top:10px;"></div>
+      <div id="map"></div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    let map, marker;
+    function startTracking() {
+      const selected = Array.from(document.querySelectorAll('input[type=checkbox]:checked')).map(x => x.value);
+      if (selected.length === 0) {
+        alert("Select at least one food item.");
+        return;
+      }
+      document.getElementById("orderedItems").innerText = "Ordered: " + selected.join(", ");
+      document.getElementById("statusSection").style.display = "block";
+
+      setTimeout(() => document.getElementById("step2").classList.add("active"), 2000);
+      setTimeout(() => document.getElementById("step3").classList.add("active"), 4000);
+      setTimeout(() => document.getElementById("step4").classList.add("active"), 6000);
+
+      if (!map) {
+        map = L.map('map').setView([0, 0], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        marker = L.marker([0, 0]).addTo(map).bindPopup("You're here!");
+      }
+
+      if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(pos => {
+          const { latitude, longitude } = pos.coords;
+          map.setView([latitude, longitude], 15);
+          marker.setLatLng([latitude, longitude]);
+          document.getElementById("locationInfo").innerText = `📍 Location: Lat ${latitude.toFixed(5)}, Lon ${longitude.toFixed(5)}`;
+        }, err => {
+          document.getElementById("locationInfo").innerText = "Unable to access location: " + err.message;
+        });
+      } else {
+        document.getElementById("locationInfo").innerText = "Geolocation not supported.";
+      }
+    }
+  </script>
+</body>
+</html>
